@@ -17,8 +17,11 @@ public class Flower {
     private static final float MAX_SPEED_PER_SECOND = 100F;
     public static final float WIDTH = COLLISION_CIRCLE_RADIUS * 2;
     private static final float HEIGHT_OFFSET = -400f;
-    private final Circle collisionCircle;
-    private final Rectangle collisionRectangle;
+    private static final float DISTANCE_BETWEEN_FLOOR_AND_CEILING = 225F;
+    private final Circle floorCollisionCircle;
+    private final Rectangle floorCollisionRectangle;
+    private final Circle ceilingCollisionCircle;
+    private final Rectangle ceilingCollisionRectangle;
 
     public float getX() {
         return x;
@@ -33,8 +36,18 @@ public class Flower {
 
     public Flower() {
         this.y = MathUtils.random(HEIGHT_OFFSET);
-        this.collisionRectangle = new Rectangle(x, y, COLLISION_RECTANGLE_WIDTH, COLLISION_RECTANGLE_HEIGHT);
-        this.collisionCircle = new Circle(x + collisionRectangle.width/ 2, y + collisionRectangle.height, COLLISION_CIRCLE_RADIUS);
+        this.floorCollisionRectangle = new Rectangle(x, y,
+                COLLISION_RECTANGLE_WIDTH, COLLISION_RECTANGLE_HEIGHT);
+        this.floorCollisionCircle = new Circle(x +
+                floorCollisionRectangle.width / 2, y +
+                floorCollisionRectangle.height, COLLISION_CIRCLE_RADIUS);
+        this.ceilingCollisionRectangle = new Rectangle(x,
+                floorCollisionCircle.y + DISTANCE_BETWEEN_FLOOR_AND_CEILING,
+                COLLISION_RECTANGLE_WIDTH, COLLISION_RECTANGLE_HEIGHT);
+        this.ceilingCollisionCircle = new Circle(x +
+                ceilingCollisionRectangle.width / 2,
+                ceilingCollisionRectangle.y, COLLISION_CIRCLE_RADIUS);
+
     }
     public void setPosition(float x) {
         this.x = x;
@@ -42,14 +55,24 @@ public class Flower {
         updateCollisionRectangle();
     }
     private void updateCollisionCircle() {
-        collisionCircle.setX(x + collisionRectangle.width / 2);
+        floorCollisionCircle.setX(x + floorCollisionRectangle.width / 2);
+        ceilingCollisionCircle.setX(x + ceilingCollisionRectangle.width / 2);
     }
     private void updateCollisionRectangle() {
-        collisionRectangle.setX(x);
+        floorCollisionRectangle.setX(x);
+        ceilingCollisionRectangle.setX(x);
     }
     public void drawDebug(ShapeRenderer shapeRenderer) {
-        shapeRenderer.circle(collisionCircle.x, collisionCircle.y, collisionCircle.radius);
-        shapeRenderer.rect(collisionRectangle.x, collisionRectangle.y, collisionRectangle.width, collisionRectangle.height);
+        shapeRenderer.circle(floorCollisionCircle.x,
+                floorCollisionCircle.y, floorCollisionCircle.radius);
+        shapeRenderer.rect(floorCollisionRectangle.x,
+                floorCollisionRectangle.y, floorCollisionRectangle.width,
+                floorCollisionRectangle.height);
+        shapeRenderer.circle(ceilingCollisionCircle.x,
+                ceilingCollisionCircle.y, ceilingCollisionCircle.radius);
+        shapeRenderer.rect(ceilingCollisionRectangle.x,
+                ceilingCollisionRectangle.y, ceilingCollisionRectangle.width,
+                ceilingCollisionRectangle.height);
     }
     public void update(float delta) {
         setPosition(x - (MAX_SPEED_PER_SECOND * delta));
