@@ -5,6 +5,8 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
@@ -29,6 +31,12 @@ public class GameScreen extends ScreenAdapter {
     private Camera camera;
     private SpriteBatch batch;
 
+    private BitmapFont bitmapFont;
+    private GlyphLayout glyphLayout;
+
+
+    private int score = 0;
+
     private Flappee flappee = new Flappee();
     private Array<Flower> flowers = new Array<Flower>();
 
@@ -45,14 +53,13 @@ public class GameScreen extends ScreenAdapter {
         shapeRenderer = new ShapeRenderer();
         batch = new SpriteBatch();
         flappee.setPosition(GameConfig.WORLD_WIDTH / 4, GameConfig.WORLD_HEIGHT / 2);
+        bitmapFont = new BitmapFont();
+        glyphLayout = new GlyphLayout();
     }
     @Override
     public void render(float delta) {
         GdxUtils.clearScreen();
-        batch.setProjectionMatrix(camera.projection);
-        batch.setTransformMatrix(camera.view);
-        batch.begin();
-        batch.end();
+        draw();
         shapeRenderer.setProjectionMatrix(camera.projection);
         shapeRenderer.setTransformMatrix(camera.view);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
@@ -63,16 +70,46 @@ public class GameScreen extends ScreenAdapter {
         shapeRenderer.end();
         update(delta);
     }
+    private void draw() {
+        batch.setProjectionMatrix(camera.projection);
+        batch.setTransformMatrix(camera.view);
+        batch.begin();
+        drawScore();
+        batch.end();
+    }
 
     private void blockFlappeeLeavingTheWorld() {
         flappee.setPosition(flappee.getX(),
                 MathUtils.clamp(flappee.getY(), 0, GameConfig.WORLD_HEIGHT));
     }
     private void update(float delta) {
+        updateFlappe();
+        updateFlowers(delta);
+        updateScore();
+        if (checkForCollision()) {
+            restart();
+        }
+    }
+    private void updateFlappe(){
         flappee.update();
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) flappee.flyUp();
         blockFlappeeLeavingTheWorld();
-        updateFlowers(delta);
+
+    }
+    private void updateFlowers(float delta) {
+        for (Flower flower : flowers) {
+            flower.update(delta);
+        }
+        checkIfNewFlowerIsNeeded();
+        removeFlowersIfPassed();
+    }
+    private void updateScore() {
+        Flower flower = flowers.first();
+        if (flower.getX() < flappee.getX() && !flower.isPointClaimed())
+        {
+            flower.markPointClaimed();
+            score++;
+        }
     }
     private void createNewFlower() {
         Flower newFlower = new Flower();
@@ -97,11 +134,26 @@ public class GameScreen extends ScreenAdapter {
             }
         }
     }
-    private void updateFlowers(float delta) {
+
+    private boolean checkForCollision() {
         for (Flower flower : flowers) {
-            flower.update(delta);
+            if (flower.isFlappeeColliding(flappee)) {
+                return true;
+            }
         }
-        checkIfNewFlowerIsNeeded();
-        removeFlowersIfPassed();
+        return false;
     }
+    private void restart() {
+        flappee.setPosition(GameConfig.WORLD_WIDTH / 4, GameConfig.WORLD_HEIGHT / 2);
+        flowers.clear();
+        score = 0;
+    }
+    private void drawScore() {
+        String scoreAsString = Integer.toString(score);
+        glyphLayout.setText(bitmapFont, scoreAsString);
+        bitmapFont.draw(batch, scoreAsString,
+                (viewport.getWorldWidth()/2 - glyphLayout.width / 2),
+                (4 * viewport.getWorldHeight() / 5) - glyphLayout.height / 2);
+    }
+
 }

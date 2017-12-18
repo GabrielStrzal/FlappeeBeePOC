@@ -2,6 +2,7 @@ package com.bee.game.sprites;
 
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
+import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 
@@ -22,6 +23,8 @@ public class Flower {
     private final Rectangle floorCollisionRectangle;
     private final Circle ceilingCollisionCircle;
     private final Rectangle ceilingCollisionRectangle;
+
+    private boolean pointClaimed = false;
 
     public float getX() {
         return x;
@@ -76,5 +79,24 @@ public class Flower {
     }
     public void update(float delta) {
         setPosition(x - (MAX_SPEED_PER_SECOND * delta));
+    }
+
+    public boolean isFlappeeColliding(Flappee flappee) {
+        Circle flappeeCollisionCircle = flappee.getCollisionCircle();
+        return
+                Intersector.overlaps(flappeeCollisionCircle,
+                        ceilingCollisionCircle) ||
+                        Intersector.overlaps(flappeeCollisionCircle,
+                                floorCollisionCircle) ||
+                        Intersector.overlaps(flappeeCollisionCircle,
+                                ceilingCollisionRectangle) ||
+                        Intersector.overlaps(flappeeCollisionCircle,
+                                floorCollisionRectangle);
+    }
+    public boolean isPointClaimed() {
+        return pointClaimed;
+    }
+    public void markPointClaimed() {
+        pointClaimed = true;
     }
 }
