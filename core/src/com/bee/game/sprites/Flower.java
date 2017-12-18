@@ -1,5 +1,7 @@
 package com.bee.game.sprites;
 
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Intersector;
@@ -24,6 +26,10 @@ public class Flower {
     private final Circle ceilingCollisionCircle;
     private final Rectangle ceilingCollisionRectangle;
 
+
+    private final Texture floorTexture;
+    private final Texture ceilingTexture;
+
     private boolean pointClaimed = false;
 
     public float getX() {
@@ -37,7 +43,9 @@ public class Flower {
     private float x = 0;
     private float y = 0;
 
-    public Flower() {
+    public Flower(Texture floorTexture,Texture ceilingTexture) {
+        this.floorTexture = floorTexture;
+        this.ceilingTexture = ceilingTexture;
         this.y = MathUtils.random(HEIGHT_OFFSET);
         this.floorCollisionRectangle = new Rectangle(x, y,
                 COLLISION_RECTANGLE_WIDTH, COLLISION_RECTANGLE_HEIGHT);
@@ -83,20 +91,29 @@ public class Flower {
 
     public boolean isFlappeeColliding(Flappee flappee) {
         Circle flappeeCollisionCircle = flappee.getCollisionCircle();
-        return
-                Intersector.overlaps(flappeeCollisionCircle,
-                        ceilingCollisionCircle) ||
-                        Intersector.overlaps(flappeeCollisionCircle,
-                                floorCollisionCircle) ||
-                        Intersector.overlaps(flappeeCollisionCircle,
-                                ceilingCollisionRectangle) ||
-                        Intersector.overlaps(flappeeCollisionCircle,
-                                floorCollisionRectangle);
+        return Intersector.overlaps(flappeeCollisionCircle, ceilingCollisionCircle) ||
+                        Intersector.overlaps(flappeeCollisionCircle, floorCollisionCircle) ||
+                        Intersector.overlaps(flappeeCollisionCircle, ceilingCollisionRectangle) ||
+                        Intersector.overlaps(flappeeCollisionCircle, floorCollisionRectangle);
     }
     public boolean isPointClaimed() {
         return pointClaimed;
     }
     public void markPointClaimed() {
         pointClaimed = true;
+    }
+    public void draw(SpriteBatch batch) {
+        drawFloorFlower(batch);
+        drawCeilingFlower(batch);
+    }
+    private void drawFloorFlower(SpriteBatch batch) {
+        float textureX = floorCollisionCircle.x - floorTexture.getWidth() / 2;
+        float textureY = floorCollisionRectangle.getY() + COLLISION_CIRCLE_RADIUS;
+        batch.draw(floorTexture, textureX, textureY);
+    }
+    private void drawCeilingFlower(SpriteBatch batch) {
+        float textureX = ceilingCollisionCircle.x - ceilingTexture.getWidth() / 2;
+        float textureY = ceilingCollisionRectangle.getY() - COLLISION_CIRCLE_RADIUS;
+        batch.draw(ceilingTexture, textureX, textureY);
     }
 }
